@@ -1,0 +1,7 @@
+base   patchpanel
+author Grant Emsley
+email  grant@emsley.ca
+date   2014-05-11
+name   Patch Panel Plugin
+desc   Draw patch panel from text description
+url    https://github.com/grantemsley/dokuwiki-plugin-patchpanel

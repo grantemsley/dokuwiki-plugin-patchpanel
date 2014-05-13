@@ -1,3 +1,15 @@
+table.patchpanel {
+	padding: 0px;
+	margin: 0px;
+}
+
+.pachpanel_ports, .patchpanel_ports td {
+	padding: 0px;
+	margin: 0px;
+}
+
+
+
 table.rack a div {
 	color: #04a;
 	text-decoration: underline;

@@ -13,11 +13,9 @@
  * 
  * The fields:
  *  - <port>: The port number on the patch panel, starting from the top left.
- *  - <u_size>: The label for the port.
+ *  - <label>: The label for the port.  Must be quoted if it contains spaces.
  *  - [#color]: Optional.  Specify an #RRGGBB HTML color code.
- *  - [comment]: Optional. All remaining text is treated as a comment.  Comments are visible
- *    by hovering the mouse over the port. Items with comments
- *    are designated with an asterisk * after the model name.
+ *  - [comment]: Optional. All remaining text is treated as a comment.  
  *
  * You can also include comment lines starting with a pound sign #.
  *
@@ -39,19 +37,6 @@ require_once(DOKU_PLUGIN.'syntax.php');
  */
 class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 
-	/*
-	 * return some info
-	 */
-	function getInfo(){
-		return array(
-			'author' => 'Grant Emsley',
-			'email'  => 'grant@emsley.ca',
-			'date'   => '2014-05-11',
-			'name'   => 'Patch Panel Plugin',
-			'desc'   => 'Displays a diagram of a network patch panel.',
-			'url'    => 'https://github.com/grantemsley/dokuwiki-plugin-patchpanel',
-		);
-	}
 
 	/*
 	 * What kind of syntax are we?
@@ -86,7 +71,9 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 	 * Handle the matches
 	 */
 	function handle($match, $state, $pos, &$handler){
-		$match = substr($match,5,-7);
+	
+		// remove "</patchpanel>" from the match
+		$match = substr($match,0,-13);
 
 		//default options
 		$opt = array(
@@ -97,20 +84,24 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 
 		list($optstr,$opt['content']) = explode('>',$match,2);
 		unset($match);
-
 		// parse options
 		$optsin = explode(' ',$optstr);
+		//$optsin = str_getcsv($optstr, ' ');
+		
+		// http://stackoverflow.com/questions/2202435/php-explode-the-string-but-treat-words-in-quotes-as-a-single-word
+		preg_match_all('/\w*?="(?:\\.|[^\\"])*"|\S+/', $optstr, $matches);
+		
+		$optsin = $matches[0];
 		foreach($optsin as $o){
 			$o = trim($o);
 			if (preg_match("/^name=(.+)/",$o,$matches)) {
-				$opt['name'] = $matches[1];
+				$opt['name'] = str_replace('"',"", $matches[1]);
 			} elseif (preg_match("/^ports=(\d+)/",$o,$matches)) {
 				$opt['ports'] = $matches[1];
 			} elseif (preg_match("/^rows=(\d+)/",$o,$matches)) {
 				$opt['rows'] = $matches[1];
 			}
 		}
-
 		return $opt;
 	}
 
@@ -128,6 +119,46 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 		if (!$item['model']) { $color = '#FFF'; }
 		return $color;
 	}
+	
+	
+	// Modify an SVG image of an ethernet port
+	function ethernet_svg($port, $label, $color, $caption) {
+		# Ethernet port
+		$image = <<<EOF
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="34" viewbox="0 0 200 170" preserveAspectRatio="xMinYMin meet" class="ethernet">
+<metadata id="metadata6">image/svg+xml</metadata>
+<g>
+	<g id="svg_1">
+		<rect fill="#ccc" stroke-width="0" stroke-miterlimit="4" y="-0.783784" x="0" height="170" width="200" id="rect2220" class="outer" />
+		<g id="g2242">
+			<rect fill="#000000" stroke-width="0" stroke-miterlimit="4" id="rect2228" width="150" height="90" x="25" y="29.162162"/>
+			<rect fill="#000000" stroke-width="0" stroke-miterlimit="4" id="rect2230" width="80" height="16" x="60" y="118.162162"/>
+			<rect fill="#000000" stroke-width="0" stroke-miterlimit="4" id="rect2232" width="50" height="16" x="75" y="133.162162"/>
+		</g>
+		<g id="g2263">
+			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2247" width="6" height="18" x="55" y="31.162162"/>
+			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2249" width="6" height="18" x="67" y="31.162162"/>
+			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2251" width="6" height="18" x="79" y="31.162162"/>
+			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2253" width="6" height="18" x="91" y="31.162162"/>
+			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2255" width="6" height="18" x="103" y="31.162162"/>
+			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2257" width="6" height="18" x="115" y="31.162162"/>
+			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2259" width="6" height="18" x="127" y="31.162162"/>
+			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2261" width="6" height="18" x="139" y="31.162162"/>
+		</g>
+	</g>
+</g>
+</svg>
+EOF;
+		// Replace color
+		if(!substr($color,0,1) == "#") { $color = '#CCCCCC'; }
+		$image = str_replace("#REPLACECOLOR#", $color, $image);
+		
+		// Replace hover text
+		$image = str_replace("#REPLACECAPTION#", $caption, $image);
+		
+		return $image;
+	}
+	
 
 	/*
 	 * Create output
@@ -136,7 +167,6 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 		if($mode == 'metadata') return false;
 
 		$content = $opt['content'];
-
 		// clear any trailing or leading empty lines from the data set
 		$content = preg_replace("/[\r\n]*$/","",$content);
 		$content = preg_replace("/^\s*[\r\n]*/","",$content);
@@ -152,24 +182,80 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 		
 		foreach (explode("\n",$content) as $line) {
 			$item = array();
-			if (preg_match("/^\s*#/",$line) || !trim($line)) { continue; } # skip comments & blanks
-			#                     Ustart    Usize     Model                    Name?                                             Color?       Link?               Comment
-			#if (preg_match('/^\s* (\d+) \s+ (\d+) \s+ ((?:"[^"]*")|\S+) \s* ((?:"[^"]*")|(?!(?:(?:\#)|(?:link:)))\S*)? \s* (\#\w+)? \s* ( link: (?: (?:\[\[[^]|]+(?:\|[^]]*)?]]) | \S* ) )? \s* (.*?)? \s* $/x',$line,$matches)) {
+			if (!preg_match("/^\s*\d+/",$line)) { continue; } # skip lines that don't start with a port number
 			
-			#					port		label		color?		comment?
-			if (preg_match('/^\s*(\d+)\s+(.*)/x',$line,$matches)) {
-				$item['port'] = $matches[1];
-				$item['label'] = $matches[2];
-				$item['comment'] = 'x';
+			# split on whitespace, keep quoted strings together
+			$matchcount = preg_match_all('/"(?:\\.|[^\\"])*"|\S+/',$line,$matches);
+			if ($matchcount > 0) {
+				$item['port'] = $matches[0][0];
+				$item['label'] = $matches[0][1];
+				# If 3rd element starts with #, it's a color.  Otherwise part of the comment
+				if (substr($matches[0][2], 0, 1) == "#") {
+					$item['color'] = $matches[0][2];
+				} else {
+					$item['comment'] = $matches[0][2];
+				}
+				# Any remaining text is part of the comment.
+				for($x=3;$x<=$matchcount;$x++) {
+					$item['comment'] .= " ".$matches[0][$x];
+				}
 				$items[$item['port']] = $item;
 				$csv .= "\"$item[port]\",\"$item[label]\",\"$item[comment]\"\n";
 			} else {
-				#$renderer->doc .= "Syntax error on the following line: <pre style='color:red'>$line</pre>\n";
 				$renderer->doc .= 'Syntax error on the following line: <pre style="color:red">'.hsc($line)."</pre>\n";
 			}
 		}
 		
-		$renderer->doc .= "<pre>ALL\n".print_r($items,true)."</pre>";
+
+
+
+		$renderer->doc .= '<div class="patchpanel" style="content: '.'; display:block;height0;overflow:visible; visibility: visible;">';
+		$renderer->doc .= "<table class='patchpanel'>";
+		
+		$portsPerRow = ceil($opt['ports']/$opt['rows']);
+		for ($row=1; $row <= $opt['rows']; $row++) {
+		
+			// Calculate the starting and ending ports for this row.
+			$startPort = 1+$portsPerRow*($row-1);
+			$endPort = $portsPerRow+$portsPerRow*($row-1);
+			if ($endPort > $opt['ports']) { $endPort = $opt['ports']; }
+		
+			$renderer->doc .= "<tr class='patchpanel_labels'>";
+			for ($port=$startPort; $port <= $endPort ; $port++) {
+				$renderer->doc .= "<td>" . $items[$port]['label'] . "</td>";
+			}
+			$renderer->doc .= "</tr>";
+			
+			$renderer->doc .= "<tr class='patchpanel_ports'>";
+			for ($port=$startPort; $port <= $endPort ; $port++) {
+
+				$renderer->doc .= "<td>" . $this->ethernet_svg($port,$items[$port]['label'],$items[$port]['color'],$items[$port]['caption']) . "</td>";
+			}
+			$renderer->doc .= "</tr>";
+			
+			$renderer->doc .= "<tr class='patchpanel_numbers'>";
+			for ($port=$startPort; $port <= $endPort ; $port++) {
+				$renderer->doc .= "<td>" . $port . "</td>";
+			}
+			$renderer->doc .= "</tr>";
+
+			$renderer->doc .= "<tr class='patchpanel_blank'>";
+			for ($port=$startPort; $port <= $endPort ; $port++) {
+				$renderer->doc .= "<td>&nbsp;</td>";
+			}
+			$renderer->doc .= "</tr>";
+
+
+
+
+			
+		}
+		$renderer->doc .= "</table>";
+		$renderer->doc .= "</div>";
+
+		
+		
+		
 		
 //		$u_first = $opt['descending'] ? 1 : $opt['height'];
 //		$u_last  = $opt['descending'] ? $opt['height'] : 1; 
