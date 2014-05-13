@@ -256,6 +256,10 @@ EOF;
 		
 		$renderer->doc .= "</svg></div>";
 		$renderer->doc .= "</div>";
+		// Button to show the CSV version
+		$renderer->doc .= "<div class='patchpanel_csv'><span onclick=\"this.innerHTML = patchpanel_toggle_vis(document.getElementById('$csv_id'),'block')?'Hide CSV &uarr;':'Show CSV &darr;';\">Show CSV &darr;</span></div>";
+		$renderer->doc .= "<pre style='display:none;' id='$csv_id'>$csv</pre>\n";
+		
 		// Make sure the tooltip div gets created
 		$renderer->doc .= "<script type='text/javascript'>patchpanel_create_tooltip_div();</script>";
 		return true;
