@@ -1,55 +1,36 @@
-table.patchpanel {
+#patchpanel_tooltip {
+	position: fixed;
+	z-index: 10;
+	display: none;
+	border: 3px solid #959FA9;
+	border-radius: 3px;
+	color: #343434;
+	background: #fff;
+}
+
+
+#patchpanel_tooltip .title {
+	
+	background: #ccc;
+	background-image: -webkit-linear-gradient(top, #3A879B8, #2E629D);
+	position: relative;
+	padding: 5px 35px 5px 10px;
+	overflow: hidden;
+	border-width: 0 0 1px;
+	font-weight: bold;
+}
+#patchpanel_tooltip .content {
+	position: relative;
+	padding: 5px 9px;
+	overflow: hidden;
+	text-align: left;
+}
+
+#patchpanel_tooltip table {
+	border: none;
 	padding: 0px;
 	margin: 0px;
 }
 
-.pachpanel_ports, .patchpanel_ports td {
-	padding: 0px;
-	margin: 0px;
-}
 
 
-
-table.rack a div {
-	color: #04a;
-	text-decoration: underline;
-}
-
-table.rack {
-	font: normal 8pt arial;
-	/* display:inline; IE needs this, so we use a sick javascript hack to make it happen */
-	display:inline-table;
-	border-collapse: collapse;
-}
-table.rack th {
-	font: bold 8pt arial;
-	background-color: black;
-	color: white;
-	text-align:center;
-	border: 1px solid black; /* visible when printing in black-on-white mode, also makes cell spacing uniform */
-}
-table.rack th.title,table.rack th.bottom {
-	border-right: 5px solid black;
-}
-table.rack th.bottom {
-	font-weight:normal;
-	text-align: right;
-	color: #888;
-}
-table.rack td {
-	font: normal 8pt arial;
-	border-right: 5px solid black;
-}
-
-table.rack .last{
-	border-bottom: 5px solid black;
-}
-
-table.rack th,table.rack td {
-	white-space: nowrap; /* stop IE from wrapping hyphenated things all willy-nilly */
-	padding: 0 5px 0 5px;
-}
-td.item {
-	border-top: 1px solid black;
-	border-bottom: 1px solid black;
-}
