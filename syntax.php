@@ -7,6 +7,7 @@
  *   name=<name>		The name of the patch panel (default: 'Patch Panel')
  *   ports=<number>		The total number of ports.  (default: 48)
  *   rows=<number>		Number of rows.  (default: 2)
+ *   groups=<number>	Number of ports in a group (default: 6)
  * Between these tags is a series of lines, each describing a port:
  * 
  *		<port> <label> [#color] [comment]
@@ -79,7 +80,8 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 		$opt = array(
 			'name' => 'Patch Panel',
 			'ports' => 42,
-			'rows' => '2'
+			'rows' => '2',
+			'groups' => '6'
 		);
 
 		list($optstr,$opt['content']) = explode('>',$match,2);
@@ -100,52 +102,48 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 				$opt['ports'] = $matches[1];
 			} elseif (preg_match("/^rows=(\d+)/",$o,$matches)) {
 				$opt['rows'] = $matches[1];
+			} elseif (preg_match("/^groups=(\d+)/",$o,$matches)) {
+				$opt['groups'] = $matches[1];
 			}
 		}
 		return $opt;
 	}
 
-	function autoselect_color($item) {
-		$color = '#888';
-		if (preg_match('/(wire|cable)\s*guide|pdu|patch|term server|lcd/i',$item['model'])) { $color = '#bba'; }
-		if (preg_match('/blank/i',                                         $item['model'])) { $color = '#fff'; }
-		if (preg_match('/netapp|fas\d/i',                                  $item['model'])) { $color = '#07c'; }
-		if (preg_match('/^Sh(elf)?\s/i',                                   $item['model'])) { $color = '#0AE'; }
-		if (preg_match('/cisco|catalyst|nexus/i',                          $item['model'])) { $color = '#F80'; }
-		if (preg_match('/brocade|mds/i',                                   $item['model'])) { $color = '#8F0'; }
-		if (preg_match('/ucs/i',                                           $item['model'])) { $color = '#c00'; }
-		if (preg_match('/ibm/i',                                           $item['model'])) { $color = '#67A'; }
-		if (preg_match('/hp/i',                                            $item['model'])) { $color = '#A67'; }
-		if (!$item['model']) { $color = '#FFF'; }
-		return $color;
-	}
 	
-	
-	// Modify an SVG image of an ethernet port
-	function ethernet_svg($port, $label, $color, $caption) {
+	// This function creates an SVG image of an ethernet port and positions it on the patch panel.
+	function ethernet_svg($row, $position, $group, $port, $label, $color, $caption) {
+		// Make row and position 0-indexed.
+		$row--;
+		$position--;
+		
 		# Ethernet port
 		$image = <<<EOF
-<svg xmlns="http://www.w3.org/2000/svg" width="40" height="34" viewbox="0 0 200 170" preserveAspectRatio="xMinYMin meet" class="ethernet">
+<svg xmlns="http://www.w3.org/2000/svg" y="#REPLACEY#" x="#REPLACEX#" width="40" height="134" viewbox="0 0 200 270" preserveAspectRatio="xMinYMin meet" class="ethernet">
 <metadata id="metadata6">image/svg+xml</metadata>
 <g>
-	<g id="svg_1">
-		<rect fill="#ccc" stroke-width="0" stroke-miterlimit="4" y="-0.783784" x="0" height="170" width="200" id="rect2220" class="outer" />
-		<g id="g2242">
-			<rect fill="#000000" stroke-width="0" stroke-miterlimit="4" id="rect2228" width="150" height="90" x="25" y="29.162162"/>
-			<rect fill="#000000" stroke-width="0" stroke-miterlimit="4" id="rect2230" width="80" height="16" x="60" y="118.162162"/>
-			<rect fill="#000000" stroke-width="0" stroke-miterlimit="4" id="rect2232" width="50" height="16" x="75" y="133.162162"/>
-		</g>
-		<g id="g2263">
-			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2247" width="6" height="18" x="55" y="31.162162"/>
-			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2249" width="6" height="18" x="67" y="31.162162"/>
-			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2251" width="6" height="18" x="79" y="31.162162"/>
-			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2253" width="6" height="18" x="91" y="31.162162"/>
-			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2255" width="6" height="18" x="103" y="31.162162"/>
-			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2257" width="6" height="18" x="115" y="31.162162"/>
-			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2259" width="6" height="18" x="127" y="31.162162"/>
-			<rect fill="#ffff00" stroke-width="0" stroke-miterlimit="4" id="rect2261" width="6" height="18" x="139" y="31.162162"/>
-		</g>
-	</g>
+  <g>
+   <rect width="200" height="100" x="-1" y="0" fill="#fff" stroke-width="5" stroke="#000000" fill="#ffffff" ry="21" rx="21"/>
+   <text font-weight="bold" transform="matrix(2.23270613481651,0,0,2.71289621263044,-0.5055757463585078,-84.46232908315777) " xml:space="preserve" text-anchor="middle" font-family="sans-serif" font-size="26" stroke-width="0" stroke="#000000" fill="#000" id="svg_4" y="57.102295" x="42.59375">#REPLACELABEL#</text>
+   <g id="svg_1">
+    <rect id="rect2220" width="200" height="170" x="-1" y="100.216216" stroke-miterlimit="4" stroke-width="0" fill="#REPLACECOLOR#"/>
+    <g id="g2242">
+     <rect y="130.162162" x="24" height="90" width="150" id="rect2228" stroke-miterlimit="4" stroke-width="0" fill="#000000"/>
+     <rect y="219.162162" x="59" height="16" width="80" id="rect2230" stroke-miterlimit="4" stroke-width="0" fill="#000000"/>
+     <rect y="234.162162" x="74" height="16" width="50" id="rect2232" stroke-miterlimit="4" stroke-width="0" fill="#000000"/>
+    </g>
+    <g id="g2263">
+     <rect y="132.162162" x="54" height="18" width="6" id="rect2247" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
+     <rect y="132.162162" x="66" height="18" width="6" id="rect2249" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
+     <rect y="132.162162" x="78" height="18" width="6" id="rect2251" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
+     <rect y="132.162162" x="90" height="18" width="6" id="rect2253" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
+     <rect y="132.162162" x="102" height="18" width="6" id="rect2255" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
+     <rect y="132.162162" x="114" height="18" width="6" id="rect2257" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
+     <rect y="132.162162" x="126" height="18" width="6" id="rect2259" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
+     <rect y="132.162162" x="138" height="18" width="6" id="rect2261" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
+    </g>
+   </g>
+	<text transform="matrix(2.0431718826293945,0,0,1.720379114151001,-68.70264820754528,-44.79857616126537) " xml:space="preserve" text-anchor="middle" font-family="sans-serif" font-size="32" stroke-width="0" stroke="#000000" fill="#ffffff" id="svg_2" y="143.102295" x="83.59375">#REPLACEPORTNUMBER#</text>
+	
 </g>
 </svg>
 EOF;
@@ -153,9 +151,18 @@ EOF;
 		if(!substr($color,0,1) == "#") { $color = '#CCCCCC'; }
 		$image = str_replace("#REPLACECOLOR#", $color, $image);
 		
+		// Replace label
+		$image = str_replace("#REPLACELABEL#", $label, $image);
+		
 		// Replace hover text
 		$image = str_replace("#REPLACECAPTION#", $caption, $image);
 		
+		// Add port number
+		$image = str_replace("#REPLACEPORTNUMBER#", $port, $image);
+		
+		// Position the port
+		$image = str_replace("#REPLACEX#", 100+$position*46+$group*30, $image);
+		$image = str_replace("#REPLACEY#", 20+$row*66, $image);
 		return $image;
 	}
 	
@@ -206,95 +213,53 @@ EOF;
 			}
 		}
 		
-
-
-
-		$renderer->doc .= '<div class="patchpanel" style="content: '.'; display:block;height0;overflow:visible; visibility: visible;">';
-		$renderer->doc .= "<table class='patchpanel'>";
-		
 		$portsPerRow = ceil($opt['ports']/$opt['rows']);
+		$groups = ceil($portsPerRow/$opt['groups']);
+		$imagewidth = 100+$portsPerRow*46+$groups*30+60;
+		$imageheight = 20+$opt['rows']*66;
+
+
+		// Outer div allows scrolling horizontally
+		$renderer->doc .= '<div class="patchpanel" style="display:block;line-height:0;overflow-x: auto; overflow-y: hidden; width:100%; ">';
+		$renderer->doc .= "<div style='height:" . $imageheight . "px; width:" . $imagewidth . "px;'>";
+		$renderer->doc .= "<svg viewbox='0 0 ".$imagewidth." ".$imageheight."' style='line-height:0px;'>";
+		$renderer->doc .=  '<rect stroke-width="5" fill="#000000" height="100%" width="100%" x="0" y="0" rx="30" ry="30" />';
+		// Draw some mounting holes
+		$renderer->doc .= '<rect fill="#fff" x="20" y="20" width="30" height="17.6" ry="9" />';
+		$renderer->doc .= '<rect fill="#fff" x="' . ($imagewidth-20-30) . '" y="20" width="30" height="17.6" ry="9" />';
+		$renderer->doc .= '<rect fill="#fff" x="20" y="'. ($imageheight-20-17.6) .'" width="30" height="17.6" ry="9" />';
+		$renderer->doc .= '<rect fill="#fff" x="' . ($imagewidth-20-30) . '" y="' . ($imageheight-20-17.6) . '" width="30" height="17.6" ry="9" />';
+		// And a label
+		$renderer->doc .= '<text transform="rotate(-90 80,' . $imageheight/2 . ') " text-anchor="middle" font-size="12" fill="#fff" y="' . $imageheight/2 . '" x="80">' . $opt['name'] . ' </text>';
+		
+
+
+
 		for ($row=1; $row <= $opt['rows']; $row++) {
 		
 			// Calculate the starting and ending ports for this row.
 			$startPort = 1+$portsPerRow*($row-1);
 			$endPort = $portsPerRow+$portsPerRow*($row-1);
 			if ($endPort > $opt['ports']) { $endPort = $opt['ports']; }
-		
-			$renderer->doc .= "<tr class='patchpanel_labels'>";
-			for ($port=$startPort; $port <= $endPort ; $port++) {
-				$renderer->doc .= "<td>" . $items[$port]['label'] . "</td>";
-			}
-			$renderer->doc .= "</tr>";
 			
-			$renderer->doc .= "<tr class='patchpanel_ports'>";
+			// Draw ethernet ports over the patch panel
 			for ($port=$startPort; $port <= $endPort ; $port++) {
-
-				$renderer->doc .= "<td>" . $this->ethernet_svg($port,$items[$port]['label'],$items[$port]['color'],$items[$port]['caption']) . "</td>";
+				$position = $port - $portsPerRow*($row-1);
+				$group = floor(($position-1)/$opt['groups']);
+				$renderer->doc .= $this->ethernet_svg($row, $position, $group, $port, $items[$port]['label'],$items[$port]['color'],$items[$port]['caption']);
 			}
-			$renderer->doc .= "</tr>";
-			
-			$renderer->doc .= "<tr class='patchpanel_numbers'>";
-			for ($port=$startPort; $port <= $endPort ; $port++) {
-				$renderer->doc .= "<td>" . $port . "</td>";
-			}
-			$renderer->doc .= "</tr>";
-
-			$renderer->doc .= "<tr class='patchpanel_blank'>";
-			for ($port=$startPort; $port <= $endPort ; $port++) {
-				$renderer->doc .= "<td>&nbsp;</td>";
-			}
-			$renderer->doc .= "</tr>";
 
 
 
 
 			
 		}
-		$renderer->doc .= "</table>";
+		$renderer->doc .= "</svg></div>";
 		$renderer->doc .= "</div>";
 
 		
 		
 		
-		
-//		$u_first = $opt['descending'] ? 1 : $opt['height'];
-//		$u_last  = $opt['descending'] ? $opt['height'] : 1; 
-//		$u_delta = $opt['descending'] ? +1 : -1;
-//		$renderer->doc .= "<table class='rack'><tr><th colspan='2' class='title'>$opt[name]</th></tr>\n";
-//		#for ($u=$opt['height']; $u>=1; $u--) {
-//		#foreach (range($u_first,$u_last,$u_delta) as $u) {
-//		for ($u=$u_first;  ($opt['descending'] ? $u<=$u_last : $u>=$u_last);  $u += $u_delta) {
-//			if ($items[$u] && $items[$u]['model']) {	
-//				$item = $items[$u];
-//				$renderer->doc .= 
-//					"<tr><th>$u</th>".
-//					"<td class='item' rowspan='$item[u_size]' style='background-color: $item[color];' title=\"".htmlspecialchars($item['comment'])."\">".
-//					($item['link'] ? '<a href="'.$item['link'].'"'.$item['linktitle'].'>' : '').
-//					"<div style='float: left; font-weight:bold;'>".
-//						"$item[model]" .
-//						($item['comment'] ? ' *' : '').
-//					"</div>".
-//					"<div style='float: right; margin-left: 3em; '>$item[name]".
-//					"</div>".
-//					($item['link'] ? '</a>' : '').
-//					"</td></tr>\n";
-//				for ($d = 1; $d < $item['u_size']; $d++) {
-//					$u += $u_delta;
-//					$renderer->doc .= "<tr><th>$u</th></tr>\n";
-//				}
-//			} else {
-//				$renderer->doc .= "<Tr><Th>$u</th><td class='empty'></td></tr>\n";
-//			}
-//		}
-//		# we use a whole row as a bottom border to sidestep an asinine rendering bug in firefox 3.0.10
-//		$renderer->doc .= "<tr><th colspan='2' class='bottom'><span style='cursor: pointer;' onclick=\"this.innerHTML = rack_toggle_vis(document.getElementById('$csv_id'),'block')?'Hide CSV &uarr;':'Show CSV &darr;';\">Show CSV &darr;</span></th></tr>\n";
-//		$renderer->doc .= "</table>&nbsp;";
-//		
-//		# this javascript hack sets the CSS "display" property of the tables to "inline", 
-//		# since IE is too dumb to have heard of the "inline-table" mode.
-//		$renderer->doc .= "<script type='text/javascript'>rack_ie6fix();</script>\n";
-//
-//		$renderer->doc .= "<pre style='display:none;' id='$csv_id'>$csv</pre>\n";
 		
 		return true;
 	}
