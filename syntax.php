@@ -103,6 +103,7 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 		if($item['label'] == '' && $item['comment'] == '') {
 			$item['label'] = '?';
 			$item['comment'] = 'This port has not been documented.';
+			$item['color'] = '#333';
 		}
 
 		$fullcaption = "<div class=\'title\'>" . $opt['name'] . " Port $port</div>";
