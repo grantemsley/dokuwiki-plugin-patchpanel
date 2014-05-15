@@ -193,15 +193,15 @@ EOF;
 				if (substr($matches[0][2], 0, 1) == "#") {
 					$item['color'] = $matches[0][2];
 				} else {
-					$item['comment'] = htmlspecialchars($matches[0][2], ENT_QUOTES);
+					$item['comment'] = $matches[0][2];
 				}
 				// Any remaining text is part of the comment.
 				for($x=3;$x<=$matchcount;$x++) {
-					$item['comment'] .= " ".htmlspecialchars($matches[0][$x], ENT_QUOTES);
+					$item['comment'] .= " ". $matches[0][$x];
 				}
-				$item['comment'] = trim($item['comment'], '"\'');
+				$csv .= '"' . $item['port'] . '","' . $item['label'] . '","' . trim($item['comment'], '"\' ') . '"' . "\n";
+				$item['comment'] = str_replace(array("\r","\n"), '', p_render('xhtml',p_get_instructions(trim($item['comment'], '"\'')),$info));
 				$items[$item['port']] = $item;
-				$csv .= "\"$item[port]\",\"$item[label]\",\"$item[comment]\"\n";
 			} else {
 				$renderer->doc .= 'Syntax error on the following line: <pre style="color:red">'.hsc($line)."</pre>\n";
 			}
