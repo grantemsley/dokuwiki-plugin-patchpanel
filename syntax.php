@@ -222,7 +222,7 @@ EOF;
 				function patchpanel_show_tooltip(evt, text) {
 					tooltip = jQuery("#patchpanel_tooltip");
 					tooltip.html(text);
-					tooltip.css({left: evt.pageX+10, top: evt.pageY+10, display: "block" });
+					tooltip.css({left: evt.clientX+10, top: evt.clientY+10, display: "block" });
 				}
 				function patchpanel_hide_tooltip() {
 					jQuery("#patchpanel_tooltip").css("display", "none");
