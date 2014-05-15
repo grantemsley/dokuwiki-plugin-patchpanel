@@ -164,7 +164,9 @@ EOF;
 	 */
 	function render($mode, &$renderer, $opt) {
 		if($mode == 'metadata') return false;
-
+		// Make sure the tooltip div gets created
+		$renderer->doc .= "<script type='text/javascript'>patchpanel_create_tooltip_div();</script>";
+		
 		$content = $opt['content'];
 		// clear any trailing or leading empty lines from the data set
 		$content = preg_replace("/[\r\n]*$/","",$content);
@@ -262,8 +264,7 @@ EOF;
 		$renderer->doc .= "<div class='patchpanel_csv'><span onclick=\"this.innerHTML = patchpanel_toggle_vis(document.getElementById('$csv_id'),'block')?'Hide CSV &uarr;':'Show CSV &darr;';\">Show CSV &darr;</span></div>";
 		$renderer->doc .= "<pre style='display:none;' id='$csv_id'>$csv</pre>\n";
 		
-		// Make sure the tooltip div gets created
-		$renderer->doc .= "<script type='text/javascript'>patchpanel_create_tooltip_div();</script>";
+
 		return true;
 	}
 }
