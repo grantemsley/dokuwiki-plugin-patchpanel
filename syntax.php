@@ -78,7 +78,8 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 		foreach($optsin as $o){
 			$o = trim($o);
 			if (preg_match("/^name=(.+)/",$o,$matches)) {
-				$opt['name'] = str_replace(array('"',"'"),"", $matches[1]);
+				// Remove beginning and ending quotes, then html encode
+				$opt['name'] = htmlspecialchars(trim($matches[1], '"\''), ENT_QUOTES);				
 			} elseif (preg_match("/^ports=(\d+)/",$o,$matches)) {
 				$opt['ports'] = $matches[1];
 			} elseif (preg_match("/^rows=(\d+)/",$o,$matches)) {
@@ -146,7 +147,7 @@ EOF;
 		$image = str_replace("#REPLACELABEL#", $item['label'], $image);
 		
 		// Replace caption
-		$image = str_replace("#REPLACECAPTION#", $fullcaption, $image);
+		$image = str_replace("#REPLACECAPTION#", htmlspecialchars($fullcaption,ENT_QUOTES), $image);
 		
 		// Add port number
 		$image = str_replace("#REPLACEPORTNUMBER#", $port, $image);
@@ -185,17 +186,18 @@ EOF;
 			$matchcount = preg_match_all('/"(?:\\.|[^\\"])*"|\S+/',$line,$matches);
 			if ($matchcount > 0) {
 				$item['port'] = $matches[0][0];
-				$item['label'] = str_replace(array('"',"'"), '', $matches[0][1]);
+				$item['label'] = htmlspecialchars(trim($matches[0][1], '"\''), ENT_QUOTES);
 				// If 3rd element starts with #, it's a color.  Otherwise part of the comment
 				if (substr($matches[0][2], 0, 1) == "#") {
 					$item['color'] = $matches[0][2];
 				} else {
-					$item['comment'] = str_replace(array('"',"'"), '', $matches[0][2]);
+					$item['comment'] = htmlspecialchars($matches[0][2], ENT_QUOTES);
 				}
 				// Any remaining text is part of the comment.
 				for($x=3;$x<=$matchcount;$x++) {
-					$item['comment'] .= " ".str_replace(array('"',"'"), '', $matches[0][$x]);
+					$item['comment'] .= " ".htmlspecialchars($matches[0][$x], ENT_QUOTES);
 				}
+				$item['comment'] = trim($item['comment'], '"\'');
 				$items[$item['port']] = $item;
 				$csv .= "\"$item[port]\",\"$item[label]\",\"$item[comment]\"\n";
 			} else {
