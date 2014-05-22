@@ -64,7 +64,7 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 		//default options
 		$opt = array(
 			'name' => 'Patch Panel',
-			'ports' => 42,
+			'ports' => 48,
 			'rows' => '2',
 			'groups' => '6',
 			'rotate' => 0
