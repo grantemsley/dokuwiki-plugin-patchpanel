@@ -216,7 +216,8 @@ EOF;
 
 
 		// Outer div allows scrolling horizontally
-		$renderer->doc .= '<div class="patchpanel" style="display:block;line-height:0;overflow-x: auto; overflow-y: hidden; width:100%; ">';
+		$renderer->doc .= '<div class="patchpanel">';
+		$renderer->doc .= '<div class="patchpanel_container">';
 		$renderer->doc .= "<div style='height:" . $imageheight . "px; width:" . $imagewidth . "px;'>";
 		$renderer->doc .= "<svg viewbox='0 0 ".$imagewidth." ".$imageheight."' style='line-height:0px;'>";
 		
@@ -262,8 +263,9 @@ EOF;
 		$renderer->doc .= "</svg></div>";
 		$renderer->doc .= "</div>";
 		// Button to show the CSV version
-		$renderer->doc .= "<div class='patchpanel_csv'><span onclick=\"this.innerHTML = patchpanel_toggle_vis(document.getElementById('$csv_id'),'block')?'Hide CSV &uarr;':'Show CSV &darr;';\">Show CSV &darr;</span></div>";
+		$renderer->doc .= "<div class='patchpanel_csv'><span onclick=\"this.innerHTML = patchpanel_toggle_vis(document.getElementById('$csv_id'),'block')?'Hide CSV &uarr;':'Show CSV &darr;';\">Show CSV &darr;</span>";
 		$renderer->doc .= "<pre style='display:none;' id='$csv_id'>$csv</pre>\n";
+		$renderer->doc .= "</div></div>";
 		
 
 		return true;

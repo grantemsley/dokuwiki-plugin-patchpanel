@@ -36,4 +36,18 @@
 	margin: 0px 0px;;
 }
 
+div.patchpanel {
+	display: inline-block;
+	padding: 20px;
+	vertical-align: top;
+	overflow: none;
+	max-width: 100%;
+}
 
+div.patchpanel_container {
+	display:block;
+	line-height:0;
+	overflow-x: auto; 
+	overflow-y: hidden;
+	width: 100%;
+}
