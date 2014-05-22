@@ -8,6 +8,7 @@
  *   ports=<number>		The total number of ports.  (default: 48)
  *   rows=<number>		Number of rows.  (default: 2)
  *   groups=<number>	Number of ports in a group (default: 6)
+ *   rotate=[0,1]		If true, rotate the patch panel 90deg clockwise.
  * Between these tags is a series of lines, each describing a port:
  * 
  *		<port> <label> [#color] [comment]
@@ -65,7 +66,8 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 			'name' => 'Patch Panel',
 			'ports' => 42,
 			'rows' => '2',
-			'groups' => '6'
+			'groups' => '6',
+			'rotate' => 0
 		);
 
 		list($optstr,$opt['content']) = explode('>',$match,2);
@@ -86,6 +88,8 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 				$opt['rows'] = $matches[1];
 			} elseif (preg_match("/^groups=(\d+)/",$o,$matches)) {
 				$opt['groups'] = $matches[1];
+			} elseif (preg_match("/^rotate=(\d+)/",$o, $matches)) {
+				$opt['rotate'] = $matches[1];
 			}
 		}
 		return $opt;
@@ -173,9 +177,6 @@ EOF;
 		$content = preg_replace("/[\r\n]*$/","",$content);
 		$content = preg_replace("/^\s*[\r\n]*/","",$content);
 
-		if(!trim($content)){
-			$renderer->cdata('No data found');
-		}		
 		$items = array();
 		
 		$csv_id = uniqid("csv_");
@@ -214,13 +215,18 @@ EOF;
 		$imagewidth = 100+$portsPerRow*46+$groups*30+60;
 		$imageheight = 20+$opt['rows']*66;
 
-
-		// Outer div allows scrolling horizontally
 		$renderer->doc .= '<div class="patchpanel">';
 		$renderer->doc .= '<div class="patchpanel_container">';
-		$renderer->doc .= "<div>";
-		$renderer->doc .= "<svg viewbox-'0 0 ".$imageheight." ".$imagewidth."' width=".$imageheight." height=".$imagewidth."><g transform='rotate(90 0 86) translate(-86 0) '>";
-		$renderer->doc .= "<svg viewbox='0 0 ".$imagewidth." ".$imageheight."' width=".$imagewidth." height=".$imageheight." style='line-height:0px;'>";
+		
+		if($opt['rotate']) {
+			// Draw an outer SVG and transform the inner one 
+			$renderer->doc .= "<div style='height:" . $imagewidth . "px; width:" . $imageheight . "px;'>";
+			$renderer->doc .= "<svg viewbox-'0 0 ".$imageheight." ".$imagewidth."' width=".$imageheight." height=".$imagewidth."><g transform='rotate(90 0 ".$imageheight.") translate(-".$imageheight." 0) '>";
+			$renderer->doc .= "<svg viewbox='0 0 ".$imagewidth." ".$imageheight."' width=".$imagewidth." height=".$imageheight." style='line-height:0px;'>";		
+		} else {
+			$renderer->doc .= "<div style='height:" . $imageheight . "px; width:" . $imagewidth . "px;'>";
+			$renderer->doc .= "<svg viewbox='0 0 ".$imagewidth." ".$imageheight."' style='line-height:0px;'>";
+		}
 		
 		// Add a script that creates the tooltips
 		$renderer->doc .= '<script type="text/ecmascript"><![CDATA[
@@ -261,8 +267,13 @@ EOF;
 			}
 		}
 		
-		$renderer->doc .= "</svg></svg></div>";
-		$renderer->doc .= "</div>";
+		$renderer->doc .= "</svg>";		
+
+		if($opt['rotate']) {
+			$renderer->doc .= "</g></svg>";
+		}
+
+		$renderer->doc .= "</div></div>";
 		// Button to show the CSV version
 		$renderer->doc .= "<div class='patchpanel_csv'><span onclick=\"this.innerHTML = patchpanel_toggle_vis(document.getElementById('$csv_id'),'block')?'Hide CSV &uarr;':'Show CSV &darr;';\">Show CSV &darr;</span>";
 		$renderer->doc .= "<pre style='display:none;' id='$csv_id'>$csv</pre>\n";
