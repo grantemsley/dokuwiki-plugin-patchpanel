@@ -218,8 +218,9 @@ EOF;
 		// Outer div allows scrolling horizontally
 		$renderer->doc .= '<div class="patchpanel">';
 		$renderer->doc .= '<div class="patchpanel_container">';
-		$renderer->doc .= "<div style='height:" . $imageheight . "px; width:" . $imagewidth . "px;'>";
-		$renderer->doc .= "<svg viewbox='0 0 ".$imagewidth." ".$imageheight."' style='line-height:0px;'>";
+		$renderer->doc .= "<div>";
+		$renderer->doc .= "<svg viewbox-'0 0 ".$imageheight." ".$imagewidth."' width=".$imageheight." height=".$imagewidth."><g transform='rotate(90 0 86) translate(-86 0) '>";
+		$renderer->doc .= "<svg viewbox='0 0 ".$imagewidth." ".$imageheight."' width=".$imagewidth." height=".$imageheight." style='line-height:0px;'>";
 		
 		// Add a script that creates the tooltips
 		$renderer->doc .= '<script type="text/ecmascript"><![CDATA[
@@ -260,7 +261,7 @@ EOF;
 			}
 		}
 		
-		$renderer->doc .= "</svg></div>";
+		$renderer->doc .= "</svg></svg></div>";
 		$renderer->doc .= "</div>";
 		// Button to show the CSV version
 		$renderer->doc .= "<div class='patchpanel_csv'><span onclick=\"this.innerHTML = patchpanel_toggle_vis(document.getElementById('$csv_id'),'block')?'Hide CSV &uarr;':'Show CSV &darr;';\">Show CSV &darr;</span>";
