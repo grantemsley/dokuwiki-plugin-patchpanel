@@ -158,7 +158,7 @@ EOF;
 		$image = str_replace("#REPLACEPORTNUMBER#", $port, $image);
 		
 		// Position the port
-		$image = str_replace("#REPLACEX#", 100+$position*46+$group*30, $image); // offset from edge+width of preceeding ports+group spacing
+		$image = str_replace("#REPLACEX#", 100+$position*43+$group*30, $image); // offset from edge+width of preceeding ports+group spacing
 		$image = str_replace("#REPLACEY#", 20+$row*66, $image);
 		return $image;
 	}
@@ -212,7 +212,7 @@ EOF;
 		// Calculate the size of the image and port spacing
 		$portsPerRow = ceil($opt['ports']/$opt['rows']);
 		$groups = ceil($portsPerRow/$opt['groups']);
-		$imagewidth = 100+$portsPerRow*46+$groups*30+60;
+		$imagewidth = 100+$portsPerRow*43+$groups*30+60;
 		$imageheight = 20+$opt['rows']*66;
 
 		$renderer->doc .= '<div class="patchpanel">';
