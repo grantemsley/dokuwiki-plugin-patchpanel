@@ -158,7 +158,7 @@ EOF;
 		$image = str_replace("#REPLACEPORTNUMBER#", $port, $image);
 		
 		// Position the port
-		$image = str_replace("#REPLACEX#", 100+$position*43+$group*30, $image); // offset from edge+width of preceeding ports+group spacing
+		$image = str_replace("#REPLACEX#", 80+$position*43+$group*10, $image); // offset from edge+width of preceeding ports+group spacing
 		$image = str_replace("#REPLACEY#", 20+$row*66, $image);
 		return $image;
 	}
@@ -212,7 +212,7 @@ EOF;
 		// Calculate the size of the image and port spacing
 		$portsPerRow = ceil($opt['ports']/$opt['rows']);
 		$groups = ceil($portsPerRow/$opt['groups']);
-		$imagewidth = 100+$portsPerRow*43+$groups*30+60;
+		$imagewidth = 80+$portsPerRow*43+$groups*10+60;
 		$imageheight = 20+$opt['rows']*66;
 
 		$renderer->doc .= '<div class="patchpanel">';
@@ -250,7 +250,7 @@ EOF;
 		$renderer->doc .= '<rect fill="#fff" x="20" y="'. ($imageheight-20-17.6) .'" width="30" height="17.6" ry="9" />';
 		$renderer->doc .= '<rect fill="#fff" x="' . ($imagewidth-20-30) . '" y="' . ($imageheight-20-17.6) . '" width="30" height="17.6" ry="9" />';
 		// Add a label
-		$renderer->doc .= '<text transform="rotate(-90 80,' . $imageheight/2 . ') " text-anchor="middle" font-size="12" fill="#fff" y="' . $imageheight/2 . '" x="80">' . $opt['name'] . ' </text>';
+		$renderer->doc .= '<text transform="rotate(-90 70,' . $imageheight/2 . ') " text-anchor="middle" font-size="12" fill="#fff" y="' . $imageheight/2 . '" x="70">' . $opt['name'] . ' </text>';
 		
 		// Draw each port
 		for ($row=1; $row <= $opt['rows']; $row++) {
