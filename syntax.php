@@ -9,6 +9,7 @@
  *   rows=<number>		Number of rows.  (default: 2)
  *   groups=<number>	Number of ports in a group (default: 6)
  *   rotate=[0,1]		If true, rotate the patch panel 90deg clockwise.
+ *   switch=[0,1]		If true, port numbering changes to match switches.
  * Between these tags is a series of lines, each describing a port:
  * 
  *		<port> <label> [#color] [comment]
@@ -67,7 +68,8 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 			'ports' => 48,
 			'rows' => '2',
 			'groups' => '6',
-			'rotate' => 0
+			'rotate' => 0,
+			'switch' => 0
 		);
 
 		list($optstr,$opt['content']) = explode('>',$match,2);
@@ -90,6 +92,8 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 				$opt['groups'] = $matches[1];
 			} elseif (preg_match("/^rotate=(\d+)/",$o, $matches)) {
 				$opt['rotate'] = $matches[1];
+			} elseif (preg_match("/^switch=(\d+)/",$o, $matches)) {
+				$opt['switch'] = $matches[1];
 			}
 		}
 		return $opt;
@@ -243,7 +247,10 @@ EOF;
 		
 		
 		// Draw a rounded rectangle for our patch panel
-		$renderer->doc .=  '<rect stroke-width="5" fill="#000000" height="100%" width="100%" x="0" y="0" rx="30" ry="30" />';
+		// grey for the patch panel, pjahn, 29.07.2014
+		$renderer->doc .=  '<rect stroke-width="5" fill="#808080" height="100%" width="100%" x="0" y="0" rx="30" ry="30" />';
+		// original - color black for the panel
+		///$renderer->doc .=  '<rect stroke-width="5" fill="#000000" height="100%" width="100%" x="0" y="0" rx="30" ry="30" />';
 		// Draw some mounting holes
 		$renderer->doc .= '<rect fill="#fff" x="20" y="20" width="30" height="17.6" ry="9" />';
 		$renderer->doc .= '<rect fill="#fff" x="' . ($imagewidth-20-30) . '" y="20" width="30" height="17.6" ry="9" />';
@@ -252,20 +259,47 @@ EOF;
 		// Add a label
 		$renderer->doc .= '<text transform="rotate(-90 70,' . $imageheight/2 . ') " text-anchor="middle" font-size="12" fill="#fff" y="' . $imageheight/2 . '" x="70">' . $opt['name'] . ' </text>';
 		
-		// Draw each port
-		for ($row=1; $row <= $opt['rows']; $row++) {
-		
-			// Calculate the starting and ending ports for this row.
-			$startPort = 1+$portsPerRow*($row-1);
-			$endPort = $portsPerRow+$portsPerRow*($row-1);
-			if ($endPort > $opt['ports']) { $endPort = $opt['ports']; }
+		if ($opt['switch']) {
 			
-			// Draw ethernet ports over the patch panel
-			for ($port=$startPort; $port <= $endPort ; $port++) {
-				$position = $port - $portsPerRow*($row-1);
-				$renderer->doc .= $this->ethernet_svg($row, $position, $port, $items[$port], $opt);
+			$startPortEven = 1;
+			$startPortOdd = 2;
+			
+			for ($row=1; $row <= $opt['rows']; $row++) {
+				// swerner 29.07.2014 modify port positioning according to hp switches
+
+				if ($row % 2 == 0) {
+					$port=$startPortOdd;
+				} else {
+					$port=$startPortEven;
+				}
+				for ($position=1; $position <= $portsPerRow; $position++) {
+						$renderer->doc .= $this->ethernet_svg($row, $position, $port, $items[$port], $opt);
+						$port=$port+2;
+				}
+				if ($row % 2 == 0) {
+					$startPortOdd = $startPortOdd+(2*$portsPerRow);
+				} else {
+					$startPortEven = $startPortEven+(2*$portsPerRow);
+				}
+			}
+			
+		} else {
+			// std port drawing code */
+			for ($row=1; $row <= $opt['rows']; $row++) {
+		
+				// Calculate the starting and ending ports for this row.
+				$startPort = 1+$portsPerRow*($row-1);
+				$endPort = $portsPerRow+$portsPerRow*($row-1);
+				if ($endPort > $opt['ports']) { $endPort = $opt['ports']; }
+			
+				// Draw ethernet ports over the patch panel
+				for ($port=$startPort; $port <= $endPort ; $port++) {
+					$position = $port - $portsPerRow*($row-1);
+					$renderer->doc .= $this->ethernet_svg($row, $position, $port, $items[$port], $opt);
+				}
 			}
 		}
+				
 		
 		$renderer->doc .= "</svg>";		
 
