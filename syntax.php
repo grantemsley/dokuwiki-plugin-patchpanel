@@ -4,12 +4,13 @@
  * 
  * Each patch panel is enclosed in <patchpanel>...</patchpanel> tags. The tag can have the
  * following parameters (all optional):
- *   name=<name>		The name of the patch panel (default: 'Patch Panel')
- *   ports=<number>		The total number of ports.  (default: 48)
- *   rows=<number>		Number of rows.  (default: 2)
- *   groups=<number>	Number of ports in a group (default: 6)
- *   rotate=[0,1]		If true, rotate the patch panel 90deg clockwise.
- *   switch=[0,1]		If true, port numbering changes to match switches.
+ *   name=<name>        The name of the patch panel (default: 'Patch Panel')
+ *   ports=<number>     The total number of ports.  (default: 48)
+ *   rows=<number>      Number of rows.  (default: 2)
+ *   groups=<number>    Number of ports in a group (default: 6)
+ *   rotate=[0,1]       If true, rotate the patch panel 90deg clockwise.
+ *   switch=[0,1,2]     If 1, port numbering changes to match switches.
+ *                      If 2, same as above, but starting from bottom to top. (e.g. 3Com/HP)
  * Between these tags is a series of lines, each describing a port:
  * 
  *		<port> <label> [#color] [comment]
@@ -261,8 +262,15 @@ EOF;
 		
 		if ($opt['switch']) {
 			
-			$startPortEven = 1;
-			$startPortOdd = 2;
+			if ($opt['switch'] == 1) {
+				$startPortEven = 1;
+				$startPortOdd = 2;
+			} else {
+                                // MaxWinterstein 03.02.2015 modify port positioning according to 3com switches (2 above 1)
+				
+                                $startPortEven = 2;
+				$startPortOdd = 1;
+			}
 			
 			for ($row=1; $row <= $opt['rows']; $row++) {
 				// swerner 29.07.2014 modify port positioning according to hp switches
