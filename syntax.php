@@ -102,7 +102,7 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 
 	
 	// This function creates an SVG image of an ethernet port and positions it on the patch panel.
-	function ethernet_svg($row, $position, $port, $item, $opt) {
+	function ethernet_svg($row, $position, $port, $item, $opt, $imagewidth, $imageheight) {
 		// Make row and position start at 0.
 		$row--;
 		$position--;
@@ -121,33 +121,40 @@ class syntax_plugin_patchpanel extends DokuWiki_Syntax_Plugin {
 		$fullcaption .= "<tr><th>Comment:</th><td>" . $item['comment'] . "</td></tr><table></div>";
 		
 		$group = floor($position/$opt['groups']);
-		
-			
-		
-		# Ethernet port image, with #STRINGS# to replace later
-		$image = <<<EOF
-			<svg xmlns="http://www.w3.org/2000/svg" y="#REPLACEY#" x="#REPLACEX#" width="40" height="134" viewbox="0 0 200 270" preserveAspectRatio="xMinYMin meet" class="ethernet">
-				<metadata id="metadata6">image/svg+xml</metadata>
-				<g onmousemove="patchpanel_show_tooltip(evt, '#REPLACECAPTION#')" onmouseout="patchpanel_hide_tooltip()">
-					<rect width="200" height="100" x="-1" y="0" stroke-width="5" stroke="#000000" fill="#ffffff" ry="21" rx="21"/>
-					<text font-weight="bold" transform="matrix(2.23270613481651,0,0,2.71289621263044,-0.5055757463585078,-84.46232908315777) " xml:space="preserve" text-anchor="middle" font-family="sans-serif" font-size="26" stroke-width="0" stroke="#000000" fill="#000" id="svg_4" y="57.102295" x="42.59375">#REPLACELABEL#</text>
-					<rect id="rect2220" width="200" height="170" x="-1" y="100.216216" stroke-miterlimit="4" stroke-width="0" fill="#REPLACECOLOR#"/>
-					<rect y="130.162162" x="24" height="90" width="150" id="rect2228" stroke-miterlimit="4" stroke-width="0" fill="#000000"/>
-					<rect y="219.162162" x="59" height="16" width="80" id="rect2230" stroke-miterlimit="4" stroke-width="0" fill="#000000"/>
-					<rect y="234.162162" x="74" height="16" width="50" id="rect2232" stroke-miterlimit="4" stroke-width="0" fill="#000000"/>
-					<rect y="132.162162" x="54" height="18" width="6" id="rect2247" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
-					<rect y="132.162162" x="66" height="18" width="6" id="rect2249" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
-					<rect y="132.162162" x="78" height="18" width="6" id="rect2251" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
-					<rect y="132.162162" x="90" height="18" width="6" id="rect2253" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
-					<rect y="132.162162" x="102" height="18" width="6" id="rect2255" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
-					<rect y="132.162162" x="114" height="18" width="6" id="rect2257" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
-					<rect y="132.162162" x="126" height="18" width="6" id="rect2259" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
-					<rect y="132.162162" x="138" height="18" width="6" id="rect2261" stroke-miterlimit="4" stroke-width="0" fill="#ffff00"/>
-					<text transform="matrix(2.0431718826293945,0,0,1.720379114151001,-68.70264820754528,-44.79857616126537) " xml:space="preserve" text-anchor="middle" font-family="sans-serif" font-size="32" stroke-width="0" stroke="#000000" fill="#ffffff" id="svg_2" y="143.102295" x="83.59375">#REPLACEPORTNUMBER#</text>
-				</g>
-			</svg>
-EOF;
 
+		// Ethernet port image, with #STRINGS# to replace later
+		$iRatio = $imagewidth / $imageheight;
+		$iWidth = $imagewidth / 17;
+		$iHeight = $imageheight / 2.85;
+
+		$iBorderLeft = ( $iWidth / 13 ) * $position;
+		$iBorderTop = ( $iHeight / 2.8 ) * $row;
+		if( $position > 5 ){
+			$iBorderLeft += $iWidth * 0.3;
+		}
+		if( $row > 0 ){
+			$iBorderTop -= $iHeight * 0.14;
+		}
+
+		$iPosX = ( ( $iWidth * $position ) + 2 * $iWidth ) + $iBorderLeft;
+		$iPosY = ( ( $iHeight * $row ) + 0.4 * $iHeight ) + $iBorderTop;
+
+		// for metallic conductors
+		$sConductors = '';
+		for( $i=0; $i<8; $i++ ){
+			$sConductors .= '<rect x="'.( ( $iPosX + ( $iWidth / 4 ) ) + ( ( $iWidth / 15 ) * $i ) ).'" y="'.( $iPosY + ( $iHeight / 2 ) ).'" width="'.( $iWidth / 32 ).'" height="'.( $iHeight / 15 ).'" fill="#ffff00"/>';
+		}
+
+		$image = '<g onmousemove="patchpanel_show_tooltip(evt, \'#REPLACECAPTION#\')" onmouseout="patchpanel_hide_tooltip()">
+			<rect x="'.$iPosX.'" y="'.$iPosY.'" width="'.$iWidth.'" height="'.$iHeight.'" fill="#REPLACECOLOR#"/>
+			<rect x="'.$iPosX.'" y="'.$iPosY.'" width="'.$iWidth.'" height="'.( $iHeight / 2.65 ).'" stroke-width="'.( $iRatio / 6 ).'" stroke="#000000" fill="#ffffff" ry="'.( $iRatio / 1.4 ).'" rx="'.( $iRatio / 1.5 ).'"/>
+			<text x="'.( $iPosX + ( $iWidth / 2 ) ).'" y="'.( $iPosY + ( $iHeight / 3.6 ) ).'" style="font-weight:bold;" text-anchor="middle" font-family="sans-serif" font-size="'.( $iRatio * 2.5 ).'" fill="#000000">#REPLACELABEL#</text>
+			<rect x="'.( $iPosX + ( $iWidth / 2.7 ) ).'" y="'.( $iPosY + ( $iHeight / 1.58 ) ).'" width="'.( $iWidth / 4 ).'" height="'.( $iHeight / 3.4 ).'" fill="#000000"/>
+			<rect x="'.( $iPosX + ( $iWidth / 3.5 ) ).'" y="'.( $iPosY + ( $iHeight / 1.58 ) ).'" width="'.( $iWidth / 2.35 ).'" height="'.( $iHeight / 4 ).'" fill="#000000"/>
+			<rect x="'.( $iPosX + ( $iWidth / 8 ) ).'" y="'.( $iPosY + ( $iHeight / 2 ) ).'" width="'.( $iWidth / 1.35 ).'" height="'.( $iHeight / 3 ).'" fill="#000000"/>
+			'.$sConductors.'
+			<text x="'.( $iPosX + ( $iWidth / 2 ) ).'" y="'.( $iPosY + ( $iHeight / 1.3 ) ).'" text-anchor="middle" font-family="sans-serif" font-size="'.( $iRatio * 2.6 ).'" fill="#ffffff">#REPLACEPORTNUMBER#</text>
+		</g>';
 
 		// Replace color, setting the default if one wasn't specified
 		if(!substr($item['color'],0,1) == "#") { $item['color'] = '#CCCCCC'; }
@@ -168,14 +175,11 @@ EOF;
 		return $image;
 	}
 	
-
 	/*
 	 * Create output
 	 */
 	function render($mode, &$renderer, $opt) {
 		if($mode == 'metadata') return false;
-		// Make sure the tooltip div gets created
-		$renderer->doc .= "<script type='text/javascript'>patchpanel_create_tooltip_div();</script>";
 		
 		$content = $opt['content'];
 		// clear any trailing or leading empty lines from the data set
@@ -204,7 +208,7 @@ EOF;
 				}
 				// Any remaining text is part of the comment.
 				for($x=3;$x<=$matchcount;$x++) {
-					$item['comment'] .= " ". $matches[0][$x];
+					$item['comment'] .= " ".( isset( $matches[0][$x] ) ? $matches[0][$x] : '' );
 				}
 				$csv .= '"' . $item['port'] . '","' . $item['label'] . '","' . trim($item['comment'], '"\' ') . '"' . "\n";
 				$item['comment'] = str_replace(array("\r","\n"), '', p_render('xhtml',p_get_instructions(trim($item['comment'], '"\'')),$info));
@@ -223,35 +227,27 @@ EOF;
 		$renderer->doc .= '<div class="patchpanel">';
 		$renderer->doc .= '<div class="patchpanel_container">';
 		
-		if($opt['rotate']) {
+		if( $opt['rotate'] ){
 			// Draw an outer SVG and transform the inner one 
 			$renderer->doc .= "<div style='height:" . $imagewidth . "px; width:" . $imageheight . "px;'>";
-			$renderer->doc .= "<svg viewbox-'0 0 ".$imageheight." ".$imagewidth."' width=".$imageheight." height=".$imagewidth."><g transform='rotate(90 0 ".$imageheight.") translate(-".$imageheight." 0) '>";
-			$renderer->doc .= "<svg viewbox='0 0 ".$imagewidth." ".$imageheight."' width=".$imagewidth." height=".$imageheight." style='line-height:0px;'>";		
+			$renderer->doc .= '<svg xmlns="http://www.w3.org/2000/svg" width="'.$imageheight.'px" height="'.$imagewidth.'px" viewbox="0 0 '.$imageheight.' '.$imagewidth.'" style="line-height:0px;width:'.$imageheight.'px;height:'.$imagewidth.'px;">'.
+				'<metadata>image/svg+xml</metadata>'.
+				'<g transform="rotate(90 0 '.$imageheight.') translate(-'.$imageheight.' 0)">';
 		} else {
 			$renderer->doc .= "<div style='height:" . $imageheight . "px; width:" . $imagewidth . "px;'>";
-			$renderer->doc .= "<svg viewbox='0 0 ".$imagewidth." ".$imageheight."' style='line-height:0px;'>";
+			$renderer->doc .= '<svg xmlns="http://www.w3.org/2000/svg" width="'.$imagewidth.'px" height="'.$imageheight.'px" viewbox="0 0 '.$imagewidth.' '.$imageheight.'" style="line-height:0px;width:'.$imagewidth.'px;height:'.$imageheight.'px;">'.
+				'<metadata>image/svg+xml</metadata>';
 		}
-		
-		// Add a script that creates the tooltips
-		$renderer->doc .= '<script type="text/ecmascript"><![CDATA[
-				function patchpanel_show_tooltip(evt, text) {
-					tooltip = jQuery("#patchpanel_tooltip");
-					tooltip.html(text);
-					tooltip.css({left: evt.clientX+10, top: evt.clientY+10, display: "block" });
-				}
-				function patchpanel_hide_tooltip() {
-					jQuery("#patchpanel_tooltip").css("display", "none");
-				}
-				]]>
-				</script>';
-		
 		
 		// Draw a rounded rectangle for our patch panel
 		// grey for the patch panel, pjahn, 29.07.2014
-		$renderer->doc .=  '<rect stroke-width="5" fill="#808080" height="100%" width="100%" x="0" y="0" rx="30" ry="30" />';
+		if( $opt['rotate'] ){
+			$renderer->doc .=  '<rect stroke-width="5" fill="#808080" height="'.$imageheight.'px" width="'.$imagewidth.'px" x="0" y="0" rx="30" ry="30" />';
+		}else{
+			$renderer->doc .=  '<rect stroke-width="5" fill="#808080" height="100%" width="100%" x="0" y="0" rx="30" ry="30" />';
+		}
+
 		// original - color black for the panel
-		///$renderer->doc .=  '<rect stroke-width="5" fill="#000000" height="100%" width="100%" x="0" y="0" rx="30" ry="30" />';
 		// Draw some mounting holes
 		$renderer->doc .= '<rect fill="#fff" x="20" y="20" width="30" height="17.6" ry="9" />';
 		$renderer->doc .= '<rect fill="#fff" x="' . ($imagewidth-20-30) . '" y="20" width="30" height="17.6" ry="9" />';
@@ -281,7 +277,7 @@ EOF;
 					$port=$startPortEven;
 				}
 				for ($position=1; $position <= $portsPerRow; $position++) {
-						$renderer->doc .= $this->ethernet_svg($row, $position, $port, $items[$port], $opt);
+						$renderer->doc .= $this->ethernet_svg($row, $position, $port, $items[$port], $opt, $imagewidth, $imageheight);
 						$port=$port+2;
 				}
 				if ($row % 2 == 0) {
@@ -303,24 +299,37 @@ EOF;
 				// Draw ethernet ports over the patch panel
 				for ($port=$startPort; $port <= $endPort ; $port++) {
 					$position = $port - $portsPerRow*($row-1);
-					$renderer->doc .= $this->ethernet_svg($row, $position, $port, $items[$port], $opt);
+					$renderer->doc .= $this->ethernet_svg($row, $position, $port, $items[$port], $opt, $imagewidth, $imageheight);
 				}
 			}
 		}
-				
-		
-		$renderer->doc .= "</svg>";		
 
-		if($opt['rotate']) {
-			$renderer->doc .= "</g></svg>";
+		if( $opt['rotate'] ){
+			$renderer->doc .= "</g>";
 		}
-
+		$renderer->doc .= "</svg>";	
 		$renderer->doc .= "</div></div>";
+		
 		// Button to show the CSV version
 		$renderer->doc .= "<div class='patchpanel_csv'><span onclick=\"this.innerHTML = patchpanel_toggle_vis(document.getElementById('$csv_id'),'block')?'Hide CSV &uarr;':'Show CSV &darr;';\">Show CSV &darr;</span>";
 		$renderer->doc .= "<pre style='display:none;' id='$csv_id'>$csv</pre>\n";
 		$renderer->doc .= "</div></div>";
 		
+		// Make sure the tooltip div gets created
+		$renderer->doc .= '<script type="text/javascript">patchpanel_create_tooltip_div();</script>';
+		
+		// Add a script that creates the tooltips
+		$renderer->doc .= '<script type="text/javascript">//<![CDATA[
+			function patchpanel_show_tooltip(evt, text) {
+				tooltip = jQuery("#patchpanel_tooltip");
+				tooltip.html(text);
+				tooltip.css({left: evt.clientX+10, top: evt.clientY+10, display: "block" });
+			}
+			function patchpanel_hide_tooltip() {
+				jQuery("#patchpanel_tooltip").css("display", "none");
+			}
+			//]]>
+		</script>';
 
 		return true;
 	}
